@@ -19,8 +19,7 @@
 
 //== IMPLEMENTATION ===========================================================
 
-Mesh::Mesh(Draw_mode _draw_mode, const std::string& _filename)
-{
+Mesh::Mesh(Draw_mode _draw_mode, const std::string &_filename) {
     // set draw mode
     draw_mode_ = _draw_mode;
 
@@ -30,12 +29,10 @@ Mesh::Mesh(Draw_mode _draw_mode, const std::string& _filename)
     read_obj(_filename.c_str());
 }
 
-bool Mesh::read_obj(const char* _filename)
-{
+bool Mesh::read_obj(const char *_filename) {
     // open obj file
     std::ifstream ifs(_filename);
-    if (!ifs)
-    {
+    if (!ifs) {
         std::cerr << "Can't open " << _filename << "\n";
         return false;
     }
@@ -49,16 +46,14 @@ bool Mesh::read_obj(const char* _filename)
     std::map<int, bool> uvDone;
     std::vector<Image> textures;
     // parse line by line
-    while (std::getline(ifs, line))
-    {
+    while (std::getline(ifs, line)) {
         //divide line into header (first word) and lineData (rest)
         size_t firstSpace = line.find_first_of(" ");
         std::string header = line.substr(0, firstSpace);
         std::istringstream lineData(line.substr(firstSpace + 1));
 
         //vertices
-        if (header == "v")
-        {
+        if (header == "v") {
             Vertex v;
             lineData >> v.position[0] >> v.position[1] >> v.position[2];
 
@@ -67,8 +62,7 @@ bool Mesh::read_obj(const char* _filename)
         }
 
         //uv-coordinates
-        if (header == "vt")
-        {
+        if (header == "vt") {
             hasUV = true;
 
             double u, v;
@@ -85,21 +79,18 @@ bool Mesh::read_obj(const char* _filename)
             continue;
         }
 
-        if (header == "vn")
-        {
+        if (header == "vn") {
             hasNormals = true;
             continue;
         }
 
         // material file
-        if (header == "mtllib")
-        {
+        if (header == "mtllib") {
             std::stringstream mtl;
             mtl << filename.substr(0, filename.find_last_of("/") + 1)
-                << lineData.str();
+                    << lineData.str();
 
-            if (!read_mtl(mtl.str(), textures))
-            {
+            if (!read_mtl(mtl.str(), textures)) {
                 std::cerr << "Cannot read mtl file " << mtl.str() << std::endl;
             }
 
@@ -110,21 +101,18 @@ bool Mesh::read_obj(const char* _filename)
         }
 
         // start of new material
-        if (header == "usemtl")
-        {
+        if (header == "usemtl") {
             counter++;
             continue;
         }
 
         // faces
-        if (header == "f")
-        {
+        if (header == "f") {
             Triangle t;
 
             int uv[3];
 
-            enum
-            {
+            enum {
                 NORMALS,
                 UV,
                 BOTH,
@@ -140,8 +128,7 @@ bool Mesh::read_obj(const char* _filename)
             char d2;
 
             // read in face indices and uv indices, skip normal indices
-            switch (nuv_status)
-            {
+            switch (nuv_status) {
                 case BOTH:
                     // format: index0/texture0/normal0 index1/texture1/normal1 index2/texture2/normal2
                     lineData >> t.i0 >> d2 >> uv[0] >> d2 >> d1;
@@ -183,22 +170,19 @@ bool Mesh::read_obj(const char* _filename)
             t.i2--;
 
             //convert uv coordinates s.th. we can use just one big combined tex instead of multiple ones
-            for (int i = 0; i < 3 && hasUV; i++)
-            {
-                if (!uvDone[uv[i]])
-                {
+            for (int i = 0; i < 3 && hasUV; i++) {
+                if (!uvDone[uv[i]]) {
                     int combinedW = 0;
-                    for (int i = 0; i < counter; i++)
-                    {
+                    for (int i = 0; i < counter; i++) {
                         combinedW += textures[i].width();
                     }
                     u_coordinates_[uv[i]] =
-                        (u_coordinates_[uv[i]] * textures[counter].width() +
-                         combinedW) /
-                        static_cast<double>(texture_.width());
+                            (u_coordinates_[uv[i]] * textures[counter].width() +
+                             combinedW) /
+                            static_cast<double>(texture_.width());
                     v_coordinates_[uv[i]] =
-                        (v_coordinates_[uv[i]] * textures[counter].height()) /
-                        static_cast<double>(texture_.height());
+                            (v_coordinates_[uv[i]] * textures[counter].height()) /
+                            static_cast<double>(texture_.height());
                     uvDone[uv[i]] = true;
                 }
             }
@@ -209,8 +193,8 @@ bool Mesh::read_obj(const char* _filename)
     }
 
     std::cout << "\n  read " << _filename << ": " << vertices_.size()
-              << " vertices, " << triangles_.size() << " triangles"
-              << std::flush;
+            << " vertices, " << triangles_.size() << " triangles"
+            << std::flush;
 
     compute_bounding_box();
     compute_normals();
@@ -220,12 +204,10 @@ bool Mesh::read_obj(const char* _filename)
 
 //-----------------------------------------------------------------------------
 
-bool Mesh::read_mtl(std::string path, std::vector<Image>& textures)
-{
+bool Mesh::read_mtl(std::string path, std::vector<Image> &textures) {
     // open mtl file
     std::ifstream ifs(path.c_str());
-    if (!ifs)
-    {
+    if (!ifs) {
         std::cerr << "Can't open " << path << "\n";
         return false;
     }
@@ -235,21 +217,18 @@ bool Mesh::read_mtl(std::string path, std::vector<Image>& textures)
     Image tmpimage;
 
     // parse line by line
-    while (std::getline(ifs, line))
-    {
+    while (std::getline(ifs, line)) {
         //divide line into header (first word) and lineData (rest)
         size_t firstSpace = line.find_first_of(" ");
         std::string header = line.substr(0, firstSpace);
         std::istringstream lineData(line.substr(firstSpace + 1));
 
-        if (header == "newmtl")
-        {
+        if (header == "newmtl") {
             numTexturesPerMaterial = 0;
             continue;
         }
 
-        if (header.substr(0, 3) == "map" && numTexturesPerMaterial == 0)
-        {
+        if (header.substr(0, 3) == "map" && numTexturesPerMaterial == 0) {
             std::stringstream tmp;
             tmp << path.substr(0, path.find_last_of("/") + 1) << lineData.str();
 
@@ -261,37 +240,28 @@ bool Mesh::read_mtl(std::string path, std::vector<Image>& textures)
 
     unsigned int maxH = 0;
     unsigned int sumW = 0;
-    for (size_t i = 0; i < textures.size(); i++)
-    {
+    for (size_t i = 0; i < textures.size(); i++) {
         sumW += textures[i].width();
         maxH = std::max(maxH, textures[i].height());
     }
     texture_.resize(sumW, maxH);
 
-    for (unsigned int x = 0; x < sumW; x++)
-    {
-        for (unsigned int y = 0; y < maxH; y++)
-        {
+    for (unsigned int x = 0; x < sumW; x++) {
+        for (unsigned int y = 0; y < maxH; y++) {
             unsigned int texnr = 0;
             unsigned int combinedW = 0;
 
-            for (int i = 0; i < textures.size(); i++)
-            {
-                if (x >= combinedW + textures[i].width())
-                {
+            for (int i = 0; i < textures.size(); i++) {
+                if (x >= combinedW + textures[i].width()) {
                     combinedW += textures[i].width();
                     texnr++;
-                }
-                else
+                } else
                     break;
             }
 
-            if (y < textures[texnr].height())
-            {
+            if (y < textures[texnr].height()) {
                 texture_(x, y) = textures[texnr](x - combinedW, y);
-            }
-            else
-            {
+            } else {
                 texture_(x, y) = vec3(0, 0, 0);
             }
         }
@@ -302,8 +272,7 @@ bool Mesh::read_mtl(std::string path, std::vector<Image>& textures)
 
 //-----------------------------------------------------------------------------
 
-void Mesh::compute_normals()
-{
+void Mesh::compute_normals() {
     /** \todo
      * In some scenes (e.g the office scene) some objects have to be flat
      * shaded (e.g. the desk) while other objects should be Phong shaded to appear
@@ -316,31 +285,35 @@ void Mesh::compute_normals()
 
 
     // initialize vertex normals to zero
-    for (Vertex& v : vertices_)
-    {
+    for (Vertex &v: vertices_) {
         v.normal = vec3(0, 0, 0);
     }
 
-    // compute triangle normals
-    for (Triangle& t : triangles_)
-    {
-        const vec3& p0 = vertices_[t.i0].position;
-        const vec3& p1 = vertices_[t.i1].position;
-        const vec3& p2 = vertices_[t.i2].position;
-        t.normal = normalize(cross(p1 - p0, p2 - p0));
-    }
 
+    // compute triangle normals
+    for (Triangle &t: triangles_) {
+        const vec3 &p0 = vertices_[t.i0].position;
+        const vec3 &p1 = vertices_[t.i1].position;
+        const vec3 &p2 = vertices_[t.i2].position;
+        t.normal = normalize(cross(p1 - p0, p2 - p0));
+
+        //vertex normals
+        double p0_angle = dot(p1 - p0, p2 - p0)/(norm(p1 - p0)*norm(p2 - p0));
+        double p1_angle = dot(p2 - p1, p0 - p1)/(norm(p2 - p1)*norm(p0 - p1));
+        double p2_angle = dot(p0 - p2, p1 - p2)/(norm(p0 - p2)*norm(p1 - p2));
+        vertices_[t.i0].normal = normalize(vertices_[t.i0].normal + p0_angle * t.normal);
+        vertices_[t.i1].normal = normalize(vertices_[t.i1].normal + p1_angle * t.normal);
+        vertices_[t.i2].normal = normalize(vertices_[t.i2].normal + p2_angle * t.normal);
+    }
 }
 
 //-----------------------------------------------------------------------------
 
-void Mesh::compute_bounding_box()
-{
+void Mesh::compute_bounding_box() {
     bb_min_ = vec3(DBL_MAX, DBL_MAX, DBL_MAX);
     bb_max_ = vec3(-DBL_MAX, -DBL_MAX, -DBL_MAX);
 
-    for (Vertex v : vertices_)
-    {
+    for (Vertex v: vertices_) {
         bb_min_ = min(bb_min_, v.position);
         bb_max_ = max(bb_max_, v.position);
     }
@@ -348,8 +321,7 @@ void Mesh::compute_bounding_box()
 
 //-----------------------------------------------------------------------------
 
-bool Mesh::intersect_bounding_box(const Ray& ray) const
-{
+bool Mesh::intersect_bounding_box(const Ray &ray) const {
     /** \todo
     * Intersect the ray `_ray` with the axis-aligned bounding box of the mesh.
     * Note that the minimum and maximum point of the bounding box are stored
@@ -378,13 +350,11 @@ bool Mesh::intersect_bounding_box(const Ray& ray) const
 
 //-----------------------------------------------------------------------------
 
-bool Mesh::intersect(const Ray& ray, vec3& intersection_point,
-                     vec3& intersection_normal, vec3& intersection_diffuse,
-                     double& intersection_distance) const
-{
+bool Mesh::intersect(const Ray &ray, vec3 &intersection_point,
+                     vec3 &intersection_normal, vec3 &intersection_diffuse,
+                     double &intersection_distance) const {
     // check bounding box intersection
-    if (!intersect_bounding_box(ray))
-    {
+    if (!intersect_bounding_box(ray)) {
         return false;
     }
 
@@ -394,14 +364,11 @@ bool Mesh::intersect(const Ray& ray, vec3& intersection_point,
     intersection_distance = DBL_MAX;
 
     // for each triangle
-    for (const Triangle& triangle : triangles_)
-    {
+    for (const Triangle &triangle: triangles_) {
         // does ray intersect triangle?
-        if (intersect_triangle(triangle, ray, p, n, d, t))
-        {
+        if (intersect_triangle(triangle, ray, p, n, d, t)) {
             // is intersection closer than previous intersections?
-            if (t < intersection_distance)
-            {
+            if (t < intersection_distance) {
                 // store data of this intersection
                 intersection_distance = t;
                 intersection_point = p;
@@ -416,12 +383,11 @@ bool Mesh::intersect(const Ray& ray, vec3& intersection_point,
 
 //-----------------------------------------------------------------------------
 
-bool Mesh::intersect_triangle(const Triangle& triangle, const Ray& ray,
-                              vec3& intersection_point,
-                              vec3& intersection_normal,
-                              vec3& intersection_diffuse,
-                              double& intersection_distance) const
-{
+bool Mesh::intersect_triangle(const Triangle &triangle, const Ray &ray,
+                              vec3 &intersection_point,
+                              vec3 &intersection_normal,
+                              vec3 &intersection_diffuse,
+                              double &intersection_distance) const {
     intersection_diffuse = material_.diffuse;
 
     /** \todo
@@ -437,25 +403,69 @@ bool Mesh::intersect_triangle(const Triangle& triangle, const Ray& ray,
     * system for a, b and t.
     * Refer to [Cramer's Rule](https://en.wikipedia.org/wiki/Cramer%27s_rule) to easily solve it.
      */
-    const vec3& p0 = vertices_[triangle.i0].position;
-    const vec3& p1 = vertices_[triangle.i1].position;
-    const vec3& p2 = vertices_[triangle.i2].position;
+
+    //std::cout << determinant3x3(vec3(6, -7, 5), vec3(-1, 1, 3), vec3(7, -7, 2)) << std::endl;
+
+    const vec3 &p0 = vertices_[triangle.i0].position;
+    const vec3 &p1 = vertices_[triangle.i1].position;
+    const vec3 &p2 = vertices_[triangle.i2].position;
+
+    const vec3 result = ray.origin_ - p2;
+    const vec3 a_factor = p0 - p2;
+    const vec3 b_factor = p1 - p2;
+    const vec3 c_factor = -ray.direction_;
+
+    const double det_lgs = determinant3x3(a_factor, b_factor, c_factor);
+
+    double a = determinant3x3(result, b_factor, c_factor) / det_lgs;
+    double b = determinant3x3(a_factor, result, c_factor) / det_lgs;
+    double t = determinant3x3(a_factor, b_factor, result) / det_lgs;
+
+    // if (draw_mode_ == FLAT) {
+    //     std::cout << "results: (a,b,t)" << std::endl;
+    //     std::cout << a << std::endl;
+    //     std::cout << b << std::endl;
+    //     std::cout << t << std::endl;
+    // }
+
+    if (a >= 0.0 && b >= 0.0 && (1-a-b) >= 0.0 && a <= 1.0 && b <= 1.0 && (1-a-b) <= 1.0 && t > 1e-5) {
+        intersection_distance = DBL_MAX;
+
+        if (t < intersection_distance) {
+            intersection_distance = t;
+            //std::cout << t << std::endl;
+            intersection_point = ray(intersection_distance);
+            if (draw_mode_ == FLAT) {
+                intersection_normal = triangle.normal;
+            } else if (draw_mode_ == PHONG) {
+                vec3 interpolated_normal = a * vertices_[triangle.i0].normal +
+                    b * vertices_[triangle.i1].normal +
+                    (1 - a - b) * vertices_[triangle.i2].normal;
+                intersection_normal = normalize(interpolated_normal);
+            }
+
+            return true;
+        }
+    }
+
+    /** \todo
+* Support textured triangles:
+* - `hasTexture_` indicates if the mesh is textured.
+* - Access the three u and v texture coordinates stored in `u_coordinates` resp. `v_coordinates` via the triangles iuv indices.
+* - Interpolate the uv-coordinates using your barycentric coordinates to get the intersection point's uv.
+* - Convert the relative uv coordinates (from 0 to 1) to absolute pixel coordinates (from 0 to width/height - 1 of `texture_`)
+* - Store the resulting texture color in `intersection_diffuse`
+* - You will notice that there will be shadows on the sky mesh in the pokemon scene.
+* Use `material.shadowable` in the `lighting(...)` function to prevent it from being shadowed.
+* (`material.shadowable` is already set to false for the sky mesh and true for all other meshes, so you don't have to set it by yourself)
+ */
 
 
-        /** \todo
-    * Support textured triangles:
-    * - `hasTexture_` indicates if the mesh is textured.
-    * - Access the three u and v texture coordinates stored in `u_coordinates` resp. `v_coordinates` via the triangles iuv indices.
-    * - Interpolate the uv-coordinates using your barycentric coordinates to get the intersection point's uv.
-    * - Convert the relative uv coordinates (from 0 to 1) to absolute pixel coordinates (from 0 to width/height - 1 of `texture_`)
-    * - Store the resulting texture color in `intersection_diffuse`
-    * - You will notice that there will be shadows on the sky mesh in the pokemon scene.
-    * Use `material.shadowable` in the `lighting(...)` function to prevent it from being shadowed.
-    * (`material.shadowable` is already set to false for the sky mesh and true for all other meshes, so you don't have to set it by yourself)
-     */
+    return false;
+}
 
-
-    return true;
+double Mesh::determinant3x3(const vec3 &a, const vec3 &b, const vec3 &c) {
+    return a[0] * (b[1] * c[2] - c[1] * b[2]) - b[0] * (a[1] * c[2] - c[1] * a[2]) + c[0] * (a[1] * b[2] - b[1] * a[2]);
 }
 
 //=============================================================================

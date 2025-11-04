@@ -91,6 +91,8 @@ private:
     /// Does \c _ray intersect the bounding box of the mesh?
     bool intersect_bounding_box(const Ray& ray) const;
 
+    static double determinant3x3(const vec3& a, const vec3& b, const vec3& c) ;
+
     /// Intersect a triangle with a ray. Return whether there is an intersection.
     /// If there is an intersection, store intersection data.
     /// This function overrides Object::intersect().

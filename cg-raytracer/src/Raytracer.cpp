@@ -21,7 +21,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <math.h>
+// #include <cmath>
 
 //-----------------------------------------------------------------------------
 
@@ -183,7 +183,7 @@ void Raytracer::write_image(const std::string &filename) {
 vec3 Raytracer::trace(const Ray &ray, const int depth) {
     // stop if recursion depth (=number of reflection) is too large
     if (depth > max_depth_)
-        return {0, 0, 0};
+        return {0.0, 0.0, 0.0};
 
     // Find first intersection with an object. If an intersection is found,
     // it is stored in object, point, normal, and t.
@@ -209,10 +209,11 @@ vec3 Raytracer::trace(const Ray &ray, const int depth) {
      * the color computed by local Phong lighthing (use `material.mirror` as weight)
      * - check whether your recursive algorithm reflects the ray `max_depth_` times
      */
-    if (material.mirror > 0) {
+    if (material.mirror > 0.0) {
         Ray reflected_ray = Ray(point, reflect(ray.direction_, normal));
-        return color + (material.mirror * trace(reflected_ray, depth + 1));
-    } else return color;
+        return color + (material.mirror * trace(reflected_ray, (depth + 1)));
+    }
+    return color;
 }
 
 //-----------------------------------------------------------------------------
@@ -252,11 +253,10 @@ vec3 Raytracer::lighting(const vec3 &point, const vec3 &normal,
     color += ambience_ * material.ambient;
 
     for (Light l: lights_) {
-        vec3 l_ = (l.position - point); //light-vector
-        l_ = l_ / norm(l_);
+        vec3 l_ = normalize(l.position - point); //light-vector
 
         //shadow ray casting
-        Ray shadow_ray = Ray( point, l_);
+        Ray shadow_ray = Ray(point, l_);
         Material _material;
         vec3 _point;
         vec3 _normal;
@@ -272,10 +272,11 @@ vec3 Raytracer::lighting(const vec3 &point, const vec3 &normal,
         double n_l = dot(normal, l_); // cosine of angle between normal and light-vector
         double r_v = dot(r, view); //cosine of angle between view-vector and reflected light mirror
 
-        if (!(n_l < 0.0)) {
+        if (n_l > 0.0) {
             color += l.color * material.diffuse * n_l; //diffuse light
-            if (!(r_v < 0.0))
+            if (r_v > 0.0) {
                 color += l.color * material.specular * pow(r_v, material.shininess); //specular light
+            }
         }
     }
 
