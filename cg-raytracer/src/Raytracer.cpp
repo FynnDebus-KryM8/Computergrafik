@@ -25,37 +25,31 @@
 
 //-----------------------------------------------------------------------------
 
-Raytracer::Raytracer(const std::string& filename)
-{
+Raytracer::Raytracer(const std::string &filename) {
     read_scene(filename);
 }
 
 //-----------------------------------------------------------------------------
 
-Raytracer::~Raytracer()
-{
+Raytracer::~Raytracer() {
     //clean up
-    for (auto o : objects_)
-    {
+    for (auto o: objects_) {
         delete o;
     }
 }
 
 //-----------------------------------------------------------------------------
 
-void Raytracer::read_scene(const std::string& filename)
-{
+void Raytracer::read_scene(const std::string &filename) {
     //clean up
-    for (auto o : objects_)
-    {
+    for (auto o: objects_) {
         delete o;
     }
     objects_.clear();
     lights_.clear();
 
     std::ifstream ifs(filename);
-    if (!ifs)
-    {
+    if (!ifs) {
         std::cerr << "Cannot open file " << filename << std::endl;
         exit(1);
     }
@@ -64,48 +58,30 @@ void Raytracer::read_scene(const std::string& filename)
     std::string token;
 
     // parse file
-    while (ifs && (ifs >> token) && (!ifs.eof()))
-    {
-        if (token[0] == '#')
-        {
+    while (ifs && (ifs >> token) && (!ifs.eof())) {
+        if (token[0] == '#') {
             ifs.getline(line, 200);
-        }
-        else if (token == "depth")
-        {
+        } else if (token == "depth") {
             ifs >> max_depth_;
-        }
-        else if (token == "camera")
-        {
+        } else if (token == "camera") {
             ifs >> camera_;
-        }
-        else if (token == "background")
-        {
+        } else if (token == "background") {
             ifs >> background_;
-        }
-        else if (token == "ambience")
-        {
+        } else if (token == "ambience") {
             ifs >> ambience_;
-        }
-        else if (token == "light")
-        {
+        } else if (token == "light") {
             Light light;
             ifs >> light;
             lights_.push_back(light);
-        }
-        else if (token == "plane")
-        {
-            auto* p = new Plane;
+        } else if (token == "plane") {
+            auto *p = new Plane;
             ifs >> (*p);
             objects_.push_back(p);
-        }
-        else if (token == "sphere")
-        {
-            auto* sphere = new Sphere();
+        } else if (token == "sphere") {
+            auto *sphere = new Sphere();
             ifs >> (*sphere);
             objects_.push_back(sphere);
-        }
-        else if (token == "mesh")
-        {
+        } else if (token == "mesh") {
             std::string fn, mode;
             ifs >> fn >> mode;
 
@@ -114,8 +90,8 @@ void Raytracer::read_scene(const std::string& filename)
             path = path.substr(0, path.find_last_of('/') + 1);
             fn = path + fn;
 
-            auto* mesh =
-                new Mesh((mode == "FLAT" ? Mesh::FLAT : Mesh::PHONG), fn);
+            auto *mesh =
+                    new Mesh((mode == "FLAT" ? Mesh::FLAT : Mesh::PHONG), fn);
 
             ifs >> mesh->material_;
 
@@ -129,8 +105,7 @@ void Raytracer::read_scene(const std::string& filename)
 
 //-----------------------------------------------------------------------------
 
-void Raytracer::compute_image()
-{
+void Raytracer::compute_image() {
     // allocate memory by resizing image
     image_.resize(camera_.width_, camera_.height_);
 
@@ -139,10 +114,8 @@ void Raytracer::compute_image()
 
 
 #pragma omp parallel for
-    for (int x = 0; x < camera_.width_; ++x)
-    {
-        for (int y = 0; y < camera_.height_; ++y)
-        {
+    for (int x = 0; x < camera_.width_; ++x) {
+        for (int y = 0; y < camera_.height_; ++y) {
             Ray ray = camera_.primary_ray(x, y);
             vec3 color = trace(ray, 0);
 
@@ -161,10 +134,8 @@ void Raytracer::compute_image()
 
     // do adaptive supersampling
 #pragma omp parallel for
-    for (int x = 1; x < camera_.width_ - 1; ++x)
-    {
-        for (int y = 1; y < camera_.height_ - 1; ++y)
-        {
+    for (int x = 1; x < camera_.width_ - 1; ++x) {
+        for (int y = 1; y < camera_.height_ - 1; ++y) {
             // check if pixel color deviates to much from the surrounding
             vec3 color(0, 0, 0);
             vec3 c = tmpimage(x, y);
@@ -173,19 +144,16 @@ void Raytracer::compute_image()
                        normSq(c - tmpimage(x - 1, y)) +
                        normSq(c - tmpimage(x, y - 1));
 
-            if (n > threshold)
-            {
+            if (n > threshold) {
                 Ray ray;
 
                 // shoot 16 rays through the pixel patch
-                for (int si = 0; si < subp; si++)
-                {
+                for (int si = 0; si < subp; si++) {
                     const double xoffset =
-                        (si) / static_cast<double>(subp)-0.5 + 1.0 / (2.0 * subp);
-                    for (int sj = 0; sj < subp; sj++)
-                    {
+                            (si) / static_cast<double>(subp) - 0.5 + 1.0 / (2.0 * subp);
+                    for (int sj = 0; sj < subp; sj++) {
                         const double yoffset =
-                            (sj) / static_cast<double>(subp)-0.5 + 1.0 / (2.0 * subp);
+                                (sj) / static_cast<double>(subp) - 0.5 + 1.0 / (2.0 * subp);
                         ray = camera_.primary_ray(
                             static_cast<double>(x) + xoffset,
                             static_cast<double>(y) + yoffset);
@@ -202,20 +170,17 @@ void Raytracer::compute_image()
             }
         }
     }
-
 }
 
 //-----------------------------------------------------------------------------
 
-void Raytracer::write_image(const std::string& filename)
-{
+void Raytracer::write_image(const std::string &filename) {
     image_.write_png(filename);
 }
 
 //-----------------------------------------------------------------------------
 
-vec3 Raytracer::trace(const Ray& ray, const int depth)
-{
+vec3 Raytracer::trace(const Ray &ray, const int depth) {
     // stop if recursion depth (=number of reflection) is too large
     if (depth > max_depth_)
         return {0, 0, 0};
@@ -226,8 +191,7 @@ vec3 Raytracer::trace(const Ray& ray, const int depth)
     vec3 point;
     vec3 normal;
     double t;
-    if (!intersect_scene(ray, material, point, normal, t))
-    {
+    if (!intersect_scene(ray, material, point, normal, t)) {
         return background_;
     }
 
@@ -248,22 +212,19 @@ vec3 Raytracer::trace(const Ray& ray, const int depth)
     if (material.mirror > 0) {
         Ray reflected_ray = Ray(point, reflect(ray.direction_, normal));
         return color + (material.mirror * trace(reflected_ray, depth + 1));
-    }
-    else return color;
-
+    } else return color;
 }
 
 //-----------------------------------------------------------------------------
 
-bool Raytracer::intersect_scene(const Ray& ray, Material& intersection_material,
-                                vec3& intersection_point,
-                                vec3& intersection_normal,
-                                double& intersection_distance) const
-{
+bool Raytracer::intersect_scene(const Ray &ray, Material &intersection_material,
+                                vec3 &intersection_point,
+                                vec3 &intersection_normal,
+                                double &intersection_distance) const {
     double t, tmin(DBL_MAX);
     vec3 p, n, d;
 
-    for (Object_ptr o : objects_) // for each object
+    for (Object_ptr o: objects_) // for each object
     {
         if (o->intersect(ray, p, n, d, t)) // does ray intersect object?
         {
@@ -284,31 +245,40 @@ bool Raytracer::intersect_scene(const Ray& ray, Material& intersection_material,
 
 //-----------------------------------------------------------------------------
 
-vec3 Raytracer::lighting(const vec3& point, const vec3& normal,
-                         const vec3& view, const Material& material) const
-{
+vec3 Raytracer::lighting(const vec3 &point, const vec3 &normal,
+                         const vec3 &view, const Material &material) const {
     vec3 color(0.0, 0.0, 0.0);
 
     color += ambience_ * material.ambient;
 
-
-    for (Light l : lights_) {
-        vec3 l_ = (l.position - point);
+    for (Light l: lights_) {
+        vec3 l_ = (l.position - point); //light-vector
         l_ = l_ / norm(l_);
-        //vec3 r = 2.0 * normal * (dot(normal, l_)) - l_;
-        vec3 r = mirror(l_, normal);
-        double n_l = dot(normal, l_);
-        double r_v = dot(r, view);
 
-        if (!(n_l < 0)) {
-            color += l.color * material.diffuse * n_l;
-            if (!(r_v < 0))
-                color += l.color * material.specular * pow(r_v, material.shininess);
+        //shadow ray casting
+        Ray shadow_ray = Ray( point, l_);
+        Material _material;
+        vec3 _point;
+        vec3 _normal;
+        double t;
+        if (intersect_scene(shadow_ray, _material, _point, _normal, t)) {
+            if (t > 0.0 && t < norm(l.position - point)) {
+                //std::cout << t << std::endl;
+                continue;
+            }
         }
-       
+
+        vec3 r = mirror(l_, normal);
+        double n_l = dot(normal, l_); // cosine of angle between normal and light-vector
+        double r_v = dot(r, view); //cosine of angle between view-vector and reflected light mirror
+
+        if (!(n_l < 0.0)) {
+            color += l.color * material.diffuse * n_l; //diffuse light
+            if (!(r_v < 0.0))
+                color += l.color * material.specular * pow(r_v, material.shininess); //specular light
+        }
     }
 
-    
 
     /** \todo
     * Compute the Phong lighting:
