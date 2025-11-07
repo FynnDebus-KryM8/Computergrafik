@@ -211,7 +211,7 @@ vec3 Raytracer::trace(const Ray &ray, const int depth) {
      */
     if (material.mirror > 0.0) {
         Ray reflected_ray = Ray(point, reflect(ray.direction_, normal));
-        return color + (material.mirror * trace(reflected_ray, (depth + 1)));
+        return (1-material.mirror) * color + (material.mirror * trace(reflected_ray, (depth + 1)));
     }
     return color;
 }

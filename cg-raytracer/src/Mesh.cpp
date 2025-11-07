@@ -16,6 +16,7 @@
 #include <sstream>
 #include <map>
 #include <cfloat>
+#include <valarray>
 
 //== IMPLEMENTATION ===========================================================
 
@@ -298,12 +299,16 @@ void Mesh::compute_normals() {
         t.normal = normalize(cross(p1 - p0, p2 - p0));
 
         //vertex normals
-        double p0_angle = dot(p1 - p0, p2 - p0)/(norm(p1 - p0)*norm(p2 - p0));
-        double p1_angle = dot(p2 - p1, p0 - p1)/(norm(p2 - p1)*norm(p0 - p1));
-        double p2_angle = dot(p0 - p2, p1 - p2)/(norm(p0 - p2)*norm(p1 - p2));
-        vertices_[t.i0].normal = normalize(vertices_[t.i0].normal + p0_angle * t.normal);
-        vertices_[t.i1].normal = normalize(vertices_[t.i1].normal + p1_angle * t.normal);
-        vertices_[t.i2].normal = normalize(vertices_[t.i2].normal + p2_angle * t.normal);
+        double p0_angle = std::acos(dot(p1 - p0, p2 - p0)/(norm(p1 - p0)*norm(p2 - p0)));
+        double p1_angle = std::acos(dot(p2 - p1, p0 - p1)/(norm(p2 - p1)*norm(p0 - p1)));
+        double p2_angle = std::acos(dot(p0 - p2, p1 - p2)/(norm(p0 - p2)*norm(p1 - p2)));
+        vertices_[t.i0].normal += p0_angle * t.normal;
+        vertices_[t.i1].normal += p1_angle * t.normal;
+        vertices_[t.i2].normal += p2_angle * t.normal;
+    }
+
+    for (Vertex &v: vertices_) {
+        v.normal = normalize(v.normal);
     }
 }
 
@@ -322,6 +327,30 @@ void Mesh::compute_bounding_box() {
 //-----------------------------------------------------------------------------
 
 bool Mesh::intersect_bounding_box(const Ray &ray) const {
+
+    //double d = dot(normal_, center_);
+    //double n_o = dot(normal_, ray.origin_);
+    //double n_dir = dot(normal_, ray.direction_);
+
+    //if (n_dir == 0) return false;
+    //double t = (d - n_o) / (n_dir);
+
+    vec3 b_1 = bb_min_; // Siehe Zeichnung!
+    vec3 b_2 = vec3(bb_min_[0], bb_min_[1], bb_max_[2]);
+    vec3 b_3 = vec3(bb_max_[0], bb_min_[1], bb_max_[2]);
+    vec3 b_4 = vec3(bb_max_[0], bb_min_[1], bb_min_[2]);
+    vec3 b_5 = vec3(bb_max_[0], bb_max_[1], bb_min_[2]);
+    vec3 b_6 = vec3(bb_min_[0], bb_max_[1], bb_min_[2]);
+    vec3 b_7 = vec3(bb_min_[0], bb_max_[1], bb_max_[2]);
+    vec3 b_8 = bb_max_;
+
+    vec3 f1[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
+    vec3 f2[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
+    vec3 f3[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
+    vec3 f4[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
+    vec3 f5[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
+    vec3 f6[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
+
     /** \todo
     * Intersect the ray `_ray` with the axis-aligned bounding box of the mesh.
     * Note that the minimum and maximum point of the bounding box are stored
@@ -420,13 +449,6 @@ bool Mesh::intersect_triangle(const Triangle &triangle, const Ray &ray,
     double a = determinant3x3(result, b_factor, c_factor) / det_lgs;
     double b = determinant3x3(a_factor, result, c_factor) / det_lgs;
     double t = determinant3x3(a_factor, b_factor, result) / det_lgs;
-
-    // if (draw_mode_ == FLAT) {
-    //     std::cout << "results: (a,b,t)" << std::endl;
-    //     std::cout << a << std::endl;
-    //     std::cout << b << std::endl;
-    //     std::cout << t << std::endl;
-    // }
 
     if (a >= 0.0 && b >= 0.0 && (1-a-b) >= 0.0 && a <= 1.0 && b <= 1.0 && (1-a-b) <= 1.0 && t > 1e-5) {
         intersection_distance = DBL_MAX;

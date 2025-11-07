@@ -60,6 +60,11 @@ int main(int argc, char** argv)
         std::string path = SCENE_PATH;
         for (int i = 0; i < 10; i++)
         {
+
+            if (i == 6) continue;
+            //if (i == 5) continue;
+            if (i == 7) continue;
+
             std::string si, so;
             switch (i)
             {
