@@ -11,6 +11,8 @@
 //== INCLUDES =================================================================
 
 #include "Mesh.h"
+
+#include <algorithm>
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -335,21 +337,51 @@ bool Mesh::intersect_bounding_box(const Ray &ray) const {
     //if (n_dir == 0) return false;
     //double t = (d - n_o) / (n_dir);
 
-    vec3 b_1 = bb_min_; // Siehe Zeichnung!
-    vec3 b_2 = vec3(bb_min_[0], bb_min_[1], bb_max_[2]);
-    vec3 b_3 = vec3(bb_max_[0], bb_min_[1], bb_max_[2]);
-    vec3 b_4 = vec3(bb_max_[0], bb_min_[1], bb_min_[2]);
-    vec3 b_5 = vec3(bb_max_[0], bb_max_[1], bb_min_[2]);
-    vec3 b_6 = vec3(bb_min_[0], bb_max_[1], bb_min_[2]);
-    vec3 b_7 = vec3(bb_min_[0], bb_max_[1], bb_max_[2]);
-    vec3 b_8 = bb_max_;
+    // vec3 b_1 = bb_min_; // Siehe Zeichnung!
+    // vec3 b_2 = vec3(bb_min_[0], bb_min_[1], bb_max_[2]);
+    // vec3 b_3 = vec3(bb_max_[0], bb_min_[1], bb_max_[2]);
+    // vec3 b_4 = vec3(bb_max_[0], bb_min_[1], bb_min_[2]);
+    // vec3 b_5 = vec3(bb_max_[0], bb_max_[1], bb_min_[2]);
+    // vec3 b_6 = vec3(bb_min_[0], bb_max_[1], bb_min_[2]);
+    // vec3 b_7 = vec3(bb_min_[0], bb_max_[1], bb_max_[2]);
+    // vec3 b_8 = bb_max_;
 
-    vec3 f1[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
-    vec3 f2[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
-    vec3 f3[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
-    vec3 f4[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
-    vec3 f5[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
-    vec3 f6[2] = {b_1, normalize(cross(b_2 - b_1, b_4 - b_1))};
+    // vec3 f1[2] = {bb_min_, vec3(-1, 0, 0)};
+    // vec3 f2[2] = {bb_min_, vec3(0, -1, 0)};
+    // vec3 f3[2] = {bb_min_, vec3(0, 0, -1)};
+    // vec3 f4[2] = {bb_max_, vec3(1, 0, 0)};
+    // vec3 f5[2] = {bb_max_, vec3(0, 1, 0)};
+    // vec3 f6[2] = {bb_max_, vec3(0, 0, 1)};
+    //
+    // double n_dir_1 = dot(ray.direction_, f1[1]);
+    // double n_dir_2 = dot(ray.direction_, f1[2]);
+    // double n_dir_3 = dot(ray.direction_, f1[3]);
+    // double n_dir_4 = dot(ray.direction_, f1[4]);
+    // double n_dir_5 = dot(ray.direction_, f1[5]);
+    // double n_dir_6 = dot(ray.direction_, f1[6]);
+    //
+    // if (n_dir_1 == 0 || n_dir_2 == 0 || n_dir_3 == 0 || n_dir_4 == 0 || n_dir_5 == 0 || n_dir_6 == 0) {
+    //     return false;
+    // }
+    //
+    // double t_1 = (dot(f1[0], f1[1])-dot(f1[1], ray.origin_))/(n_dir_1);
+    // double t_2 = (dot(f2[0], f2[1])-dot(f2[1], ray.origin_))/(n_dir_2);
+    // double t_3 = (dot(f3[0], f3[1])-dot(f3[1], ray.origin_))/(n_dir_3);
+    // double t_4 = (dot(f4[0], f4[1])-dot(f4[1], ray.origin_))/(n_dir_4);
+    // double t_5 = (dot(f5[0], f5[1])-dot(f5[1], ray.origin_))/(n_dir_5);
+    // double t_6 = (dot(f6[0], f6[1])-dot(f6[1], ray.origin_))/(n_dir_6);
+
+    double t_min = 0.0;
+    double t_max = DBL_MAX;
+
+    for (int i = 0; i < 3; ++i) {
+        double t_1 = (bb_min_[i] - ray.origin_[i])/(ray.direction_[i]);
+        double t_2 = (bb_max_[i] - ray.origin_[i])/(ray.direction_[i]);
+
+        t_min = std::max(t_min, std::min(t_1, t_2));
+        t_max = std::min(t_max, std::max(t_1, t_2));
+    }
+    return t_min <= t_max;
 
     /** \todo
     * Intersect the ray `_ray` with the axis-aligned bounding box of the mesh.
@@ -372,9 +404,6 @@ bool Mesh::intersect_bounding_box(const Ray &ray) const {
     * with all triangles of every mesh in the scene. The bounding boxes are computed
     * in `Mesh::compute_bounding_box()`.
     */
-
-
-    return true;
 }
 
 //-----------------------------------------------------------------------------
