@@ -256,15 +256,17 @@ vec3 Raytracer::lighting(const vec3 &point, const vec3 &normal,
         vec3 l_ = normalize(l.position - point); //light-vector
 
         //shadow ray casting
-        Ray shadow_ray = Ray(point, l_);
-        Material _material;
-        vec3 _point;
-        vec3 _normal;
-        double t;
-        if (intersect_scene(shadow_ray, _material, _point, _normal, t)) {
-            if (t > 0.0 && t < norm(l.position - point)) {
-                //std::cout << t << std::endl;
-                continue;
+        if (material.shadowable) {
+            Ray shadow_ray = Ray(point, l_);
+            Material _material;
+            vec3 _point;
+            vec3 _normal;
+            double t;
+            if (intersect_scene(shadow_ray, _material, _point, _normal, t)) {
+                if (t > 0.0 && t < norm(l.position - point)) {
+                    //std::cout << t << std::endl;
+                    continue;
+                }
             }
         }
 

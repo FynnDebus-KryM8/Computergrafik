@@ -329,48 +329,6 @@ void Mesh::compute_bounding_box() {
 //-----------------------------------------------------------------------------
 
 bool Mesh::intersect_bounding_box(const Ray &ray) const {
-
-    //double d = dot(normal_, center_);
-    //double n_o = dot(normal_, ray.origin_);
-    //double n_dir = dot(normal_, ray.direction_);
-
-    //if (n_dir == 0) return false;
-    //double t = (d - n_o) / (n_dir);
-
-    // vec3 b_1 = bb_min_; // Siehe Zeichnung!
-    // vec3 b_2 = vec3(bb_min_[0], bb_min_[1], bb_max_[2]);
-    // vec3 b_3 = vec3(bb_max_[0], bb_min_[1], bb_max_[2]);
-    // vec3 b_4 = vec3(bb_max_[0], bb_min_[1], bb_min_[2]);
-    // vec3 b_5 = vec3(bb_max_[0], bb_max_[1], bb_min_[2]);
-    // vec3 b_6 = vec3(bb_min_[0], bb_max_[1], bb_min_[2]);
-    // vec3 b_7 = vec3(bb_min_[0], bb_max_[1], bb_max_[2]);
-    // vec3 b_8 = bb_max_;
-
-    // vec3 f1[2] = {bb_min_, vec3(-1, 0, 0)};
-    // vec3 f2[2] = {bb_min_, vec3(0, -1, 0)};
-    // vec3 f3[2] = {bb_min_, vec3(0, 0, -1)};
-    // vec3 f4[2] = {bb_max_, vec3(1, 0, 0)};
-    // vec3 f5[2] = {bb_max_, vec3(0, 1, 0)};
-    // vec3 f6[2] = {bb_max_, vec3(0, 0, 1)};
-    //
-    // double n_dir_1 = dot(ray.direction_, f1[1]);
-    // double n_dir_2 = dot(ray.direction_, f1[2]);
-    // double n_dir_3 = dot(ray.direction_, f1[3]);
-    // double n_dir_4 = dot(ray.direction_, f1[4]);
-    // double n_dir_5 = dot(ray.direction_, f1[5]);
-    // double n_dir_6 = dot(ray.direction_, f1[6]);
-    //
-    // if (n_dir_1 == 0 || n_dir_2 == 0 || n_dir_3 == 0 || n_dir_4 == 0 || n_dir_5 == 0 || n_dir_6 == 0) {
-    //     return false;
-    // }
-    //
-    // double t_1 = (dot(f1[0], f1[1])-dot(f1[1], ray.origin_))/(n_dir_1);
-    // double t_2 = (dot(f2[0], f2[1])-dot(f2[1], ray.origin_))/(n_dir_2);
-    // double t_3 = (dot(f3[0], f3[1])-dot(f3[1], ray.origin_))/(n_dir_3);
-    // double t_4 = (dot(f4[0], f4[1])-dot(f4[1], ray.origin_))/(n_dir_4);
-    // double t_5 = (dot(f5[0], f5[1])-dot(f5[1], ray.origin_))/(n_dir_5);
-    // double t_6 = (dot(f6[0], f6[1])-dot(f6[1], ray.origin_))/(n_dir_6);
-
     double t_min = 0.0;
     double t_max = DBL_MAX;
 
@@ -478,8 +436,9 @@ bool Mesh::intersect_triangle(const Triangle &triangle, const Ray &ray,
     double a = determinant3x3(result, b_factor, c_factor) / det_lgs;
     double b = determinant3x3(a_factor, result, c_factor) / det_lgs;
     double t = determinant3x3(a_factor, b_factor, result) / det_lgs;
+    double c = (1-a-b);
 
-    if (a >= 0.0 && b >= 0.0 && (1-a-b) >= 0.0 && a <= 1.0 && b <= 1.0 && (1-a-b) <= 1.0 && t > 1e-5) {
+    if (a >= 0.0 && b >= 0.0 && c >= 0.0 && a <= 1.0 && b <= 1.0 && c <= 1.0 && t > 1e-5) {
         intersection_distance = DBL_MAX;
 
         if (t < intersection_distance) {
@@ -491,8 +450,22 @@ bool Mesh::intersect_triangle(const Triangle &triangle, const Ray &ray,
             } else if (draw_mode_ == PHONG) {
                 vec3 interpolated_normal = a * vertices_[triangle.i0].normal +
                     b * vertices_[triangle.i1].normal +
-                    (1 - a - b) * vertices_[triangle.i2].normal;
+                    c * vertices_[triangle.i2].normal;
                 intersection_normal = normalize(interpolated_normal);
+            }
+
+            if (hasTexture_) {
+                //vec3 baricentric_weights = vec3(a, b, c);
+                //double u = dot(baricentric_weights, vec3(u_coordinates_[triangle.i0], u_coordinates_[triangle.i1], u_coordinates_[triangle.i2]));
+                //double v = dot(baricentric_weights, vec3(v_coordinates_[triangle.i0], v_coordinates_[triangle.i2], v_coordinates_[triangle.i2]));
+
+                double u = a * u_coordinates_[triangle.iuv0] + b * u_coordinates_[triangle.iuv1] + c * u_coordinates_[triangle.iuv2];
+                double v = a * v_coordinates_[triangle.iuv0] + b * v_coordinates_[triangle.iuv1] + c * v_coordinates_[triangle.iuv2];
+
+                u = u * (texture_.width()-1);
+                v = v * (texture_.height()-1);
+
+                intersection_diffuse = texture_(u, v);
             }
 
             return true;
