@@ -1,0 +1,7 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$classSpace__Object.html" title="default class for the planet" alt="" coords="5,31,109,56"/>
+<area shape="rect" id="Node000001" href="$classEarth.html" title="earth is a special planet, because we need access to more textures" alt="" coords="158,5,211,31"/>
+<area shape="poly" id="edge2_Node000000_Node000001" title=" " alt="" coords="122,28,157,21,158,26,123,33"/>
+<area shape="rect" id="Node000002" href="$classMoon.html" title="Moon is a special planet, because it does not evolve around the sun." alt="" coords="157,55,212,80"/>
+<area shape="poly" id="edge3_Node000000_Node000002" title=" " alt="" coords="123,53,158,60,157,65,122,58"/>
+</map>

@@ -1,3 +1,6 @@
-cg-raytracer/build/
-cg-raytracer/cmake-build-release-visual-studio/
-cg-raytracer/.idea/
+**/cmake-build-release/
+**/cmake-build-debug/
+**/cmake-build-release-visual-studio/
+**/cmake-build-debug-visual-studio/
+**/.idea/
+**/build/

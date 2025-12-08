@@ -1,0 +1,18 @@
+<map id="Solar_viewer" name="Solar_viewer">
+<area shape="rect" id="Node000001" title="OpenGL viewer that handles all the rendering for us." alt="" coords="179,273,277,299"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,139,75,165"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="52,176,74,213,88,232,106,247,142,266,180,276,178,281,140,271,102,252,84,235,69,216,48,179"/>
+<area shape="rect" id="Node000003" href="$classSpace__Object.html" title="default class for the planet" alt="" coords="193,5,297,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,39,166,62,150,77,137,95,124,125,120,152,124,178,137,209,150,229,167,246,205,271,202,275,164,250,146,233,132,212,119,180,114,152,119,124,132,92,146,73,162,57,200,34"/>
+<area shape="rect" id="Node000004" href="$classEarth.html" title="earth is a special planet, because we need access to more textures" alt="" coords="201,139,255,165"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="245,45,232,140,227,139,239,44"/>
+<area shape="rect" id="Node000005" href="$classMoon.html" title="Moon is a special planet, because it does not evolve around the sun." alt="" coords="279,139,334,165"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="259,42,304,138,299,140,254,44"/>
+<area shape="poly" id="edge7_Node000005_Node000003" title=" " alt="" coords="269,40,278,53,297,99,307,138,302,139,292,101,274,56,264,43"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="231,179,231,273,225,273,225,179"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="305,179,294,214,275,251,249,275,246,271,271,248,289,212,300,177"/>
+<area shape="rect" id="Node000006" href="$classShip.html" title=" " alt="" coords="381,139,429,165"/>
+<area shape="poly" id="edge8_Node000001_Node000006" title=" " alt="" coords="395,179,370,216,334,251,306,267,278,277,276,272,304,262,330,247,365,213,390,176"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="387,5,442,31"/>
+<area shape="poly" id="edge9_Node000006_Node000007" title=" " alt="" coords="416,45,409,139,403,139,410,44"/>
+</map>
