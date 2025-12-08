@@ -520,14 +520,8 @@ void Solar_viewer::render()
     // eye = vec4(7.0, 0.0, 0.0, 1.0);
     center = look_at_->position_;
     radius = look_at_->radius_;
-    eye = center + vec4(0.0f, 0.0f, 1.0f, 0.0f) * (dist_factor_ * radius);
+    eye = center + camera_rotation_ * vec4(0.0f, 0.0f, 1.0f, 0.0f) * (dist_factor_ * radius);
     up = vec4(0, 1, 0, 0);
-
-    // std::cout << " cam settigns are: " << look_at_->name_ << std::endl;
-    // std::cout << dist_factor_ << std::endl;
-    // std::cout << eye << std::endl;
-    // std::cout << radius << std::endl;
-    // std::cout << center << std::endl;
 
     view = mat4::look_at(vec3(eye), (vec3)center, (vec3)up);
 
