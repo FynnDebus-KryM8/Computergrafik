@@ -97,7 +97,7 @@ void Ship::accelerate(float speedup)
     speed_ = std::max(0.0f, std::min(0.03f,speed_));
 }
 
-void Ship::accelerate_angular(float angular_speedup)
+void Ship::accelerate_angular(vec3 angular_speedup)
 {
     angular_speed_ += angular_speedup;
 }
@@ -106,10 +106,10 @@ void Ship::update_ship()
 {
     angle_ += angular_speed_;
     angular_speed_ *= 0.98;
-    mat4 rot = mat4::rotate_y(angle_);
-    direction_ = rot*vec4(0,0,1,0);
+    mat4 rot = mat4::rotate_x(angle_.x) * mat4::rotate_y(angle_.y) * mat4::rotate_z(angle_.z);
+    direction_ = rot*vec4(1,1,1,0);
     position_ += speed_*direction_;
-    model_matrix_ = mat4::translate(vec3(position_[0], position_[1], position_[2]))*mat4::rotate_y(angle_)*mat4::scale(radius_);
+    model_matrix_ = mat4::translate(vec3(position_[0], position_[1], position_[2]))*rot*mat4::scale(radius_);
 }
 
 void Ship::draw(GLenum mode)

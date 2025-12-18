@@ -21,7 +21,7 @@ public:
     void accelerate(float speedup);
 
     /// changes ship's angular speed
-    void accelerate_angular(float angular_speedup);
+    void accelerate_angular(vec3 angular_speedup);
 
     /// draws the ship
     void draw(GLenum mode = GL_TRIANGLES) override;
@@ -52,8 +52,8 @@ public:
     /// current position
     vec4 position_;
 
-    /// current y-axis angle
-    float angle_;
+    /// current pitch-yaw-roll angle
+    vec3 angle_;
 
     /// current direction in which the ship faces
     vec4 direction_;
@@ -62,7 +62,7 @@ public:
     float speed_;
 
     /// current angular speed (angle_ += angular_speed)
-    float angular_speed_;
+    vec3 angular_speed_;
 
     /// ships radius
     float radius_;

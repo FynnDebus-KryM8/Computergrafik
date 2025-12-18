@@ -240,6 +240,27 @@ void Solar_viewer::keyboard(int key, int scancode, int action, int mods)
                 if (in_ship_)
                 {
                     float accel = (key == GLFW_KEY_W) ? 0.0002 : -0.0002;
+                    ship_.accelerate_angular(vec3(0.0f,  0.0f, accel));
+
+                }
+                break;
+            }
+            case GLFW_KEY_Q:
+            case GLFW_KEY_E:
+            {
+                if (in_ship_)
+                {
+                    float accel = (key == GLFW_KEY_Q) ? 0.0002 : -0.0002;
+                    ship_.accelerate_angular(vec3(accel,  0.0f , 0.0f));
+                }
+                break;
+            }
+            case GLFW_KEY_U:
+            case GLFW_KEY_J:
+            {
+                if (in_ship_)
+                {
+                    float accel = (key == GLFW_KEY_U) ? 0.0002 : -0.0002;
                     ship_.accelerate(accel);
                 }
                 break;
@@ -251,7 +272,7 @@ void Solar_viewer::keyboard(int key, int scancode, int action, int mods)
                 if (in_ship_)
                 {
                     float accel = (key == GLFW_KEY_A) ? 0.02 : -0.02;
-                    ship_.accelerate_angular(accel);
+                    ship_.accelerate_angular(vec3(0.0f,  accel, 0.0f));
                 }
                 break;
             }
@@ -519,12 +540,19 @@ void Solar_viewer::render()
     vec4 center;
     vec4 up;
 
-
-    // eye = vec4(7.0, 0.0, 0.0, 1.0);
-    center = look_at_->position_;
-    radius = look_at_->radius_;
-    eye = center + camera_rotation_ * vec4(0.0f, 0.0f, 1.0f, 0.0f) * (dist_factor_ * radius);
-    up = vec4(0, 1, 0, 0);
+    if (in_ship_) {
+        center = ship_.position_;
+        radius = ship_.radius_;
+        mat4 rot = mat4::rotate_x(ship_.angle_.x) * mat4::rotate_y(ship_.angle_.y + 180) * mat4::rotate_z(ship_.angle_.z);
+        eye = center + rot * vec4(0.0f, 0.0f, 1.0f, 0.0f) * (dist_factor_ * radius);
+        up = vec4(0, 1, 0, 0);
+    } else {
+        // eye = vec4(7.0, 0.0, 0.0, 1.0);
+        center = look_at_->position_;
+        radius = look_at_->radius_;
+        eye = center + camera_rotation_ * vec4(0.0f, 0.0f, 1.0f, 0.0f) * (dist_factor_ * radius);
+        up = vec4(0, 1, 0, 0);
+    }
 
     view = mat4::look_at(vec3(eye), (vec3)center, (vec3)up);
 
@@ -667,6 +695,7 @@ void Solar_viewer::draw_scene(mat4& projection, mat4& view)
                     earth->night_.bind();
                     earth->cloud_.bind();
                     earth->gloss_.bind();
+                    earth->normal_.bind();
                 }
                 unit_sphere_mesh_.draw();
         } else {
@@ -682,6 +711,22 @@ void Solar_viewer::draw_scene(mat4& projection, mat4& view)
             planet->texture_.bind();
             unit_sphere_mesh_.draw();
         }
+    }
+    if (in_ship_) {
+        m_matrix = ship_.model_matrix_;
+        mv_matrix = view * m_matrix;
+        mvp_matrix = projection * mv_matrix;
+        n_matrix = transpose(inverse(mat3(mv_matrix)));
+
+        phong_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
+        phong_shader_.set_uniform("modelview_matrix", mv_matrix);
+        phong_shader_.set_uniform("normal_matrix", n_matrix);
+        phong_shader_.set_uniform("light_position", light);
+        phong_shader_.set_uniform("tex", 0);
+        phong_shader_.set_uniform("greyscale", (int)greyscale_);
+
+        ship_.texture_.bind();
+        ship_.draw();
     }
 
 
