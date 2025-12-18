@@ -27,10 +27,28 @@ void main()
     *
     *  Hint: Here, functions like reflect, dot, max, min, normalize can be used in the same way as in the raytracer.
      */
+    vec3 tex_color = texture(tex, v2f_texcoord).rgb;
+    float alpha = texture(tex, v2f_texcoord).a;
 
-    vec3 color = vec3(0.0,0.0,0.0);
-	float alpha = 1.0;
+    vec3 color = tex_color;
 
+    float n_l = dot(normalize(v2f_normal), normalize(v2f_light));
+    vec3 r = normalize(2.0f * normalize(v2f_normal) * n_l - normalize(v2f_light));
+    float r_v = dot(r, normalize(v2f_view));
+
+    vec3 ambient = 0.2f * sunlight; // ambient
+    vec3 diffuse = max(sunlight * n_l, vec3(0.0f, 0.0f, 0.0f));
+    vec3 specular = max(sunlight * 0.2f * pow(r_v, shininess), vec3(0.0f, 0.0f, 0.0f));// specular
+
+    color *= ambient + diffuse + specular;
+
+//    if (!(n_l < 0.0f)) {
+//        color += sunlight * tex_color * n_l; // diffuse
+//        if (!(r_v < 0.0f)) {
+//            color += sunlight * (0.2f * tex_color) * pow(r_v, shininess); // specular
+////            color += sunlight * pow(r_v, shininess);
+//        }
+//    }
 
     // convert RGB color to YUV color and use only the luminance
     if (greyscale) color = vec3(0.299*color.r+0.587*color.g+0.114*color.b);

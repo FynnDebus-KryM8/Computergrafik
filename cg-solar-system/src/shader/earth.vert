@@ -23,5 +23,10 @@ void main()
      *   and continue with the fragment shader
      */
 
-
+    v2f_texcoord = v_texcoord;
+    vec3 eye_position = (modelview_matrix * v_position).xyz;
+    v2f_normal = normalize(normal_matrix * v_normal); // todo maybe needs to be negative?
+    v2f_light = normalize(light_position.xyz - eye_position);
+    v2f_view = normalize(-eye_position);
+    gl_Position = modelview_projection_matrix * v_position;
 } 

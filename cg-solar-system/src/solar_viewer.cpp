@@ -145,6 +145,8 @@ void Solar_viewer::initialize()
                        GL_LINEAR, GL_REPEAT);
     earth_.gloss_.init(GL_TEXTURE3, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR,
                        GL_LINEAR, GL_REPEAT);
+    earth_.normal_.init(GL_TEXTURE4, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR,
+                       GL_LINEAR, GL_REPEAT);
 
     ship_.texture_.init(GL_TEXTURE0, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR,
                         GL_LINEAR, GL_REPEAT);
@@ -175,6 +177,7 @@ void Solar_viewer::initialize()
     earth_.night_.loadPNG(texture_path + string("earth_night.png"));
     earth_.cloud_.loadPNG(texture_path + string("earth_clouds.png"));
     earth_.gloss_.loadPNG(texture_path + string("earth_gloss.png"));
+    earth_.normal_.loadPNG(texture_path + string("earth_normal.png"));
 
     //  setup ship
     ship_.texture_.loadPNG(texture_path + string("ship.png"));
@@ -621,23 +624,64 @@ void Solar_viewer::draw_scene(mat4& projection, mat4& view)
     m_matrix = sun_.model_matrix_;
     mv_matrix = view * m_matrix;
     mvp_matrix = projection * mv_matrix;
-    color_shader_.use();
-    color_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
-    color_shader_.set_uniform("tex", 0);
-    color_shader_.set_uniform("greyscale", (int)greyscale_);
+    sun_shader_.use();
+    sun_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
+    sun_shader_.set_uniform("time", time);
+    sun_shader_.set_uniform("greyscale", (int)greyscale_);
     sun_.texture_.bind();
     unit_sphere_mesh_.draw();
 
+    m_matrix = stars_.model_matrix_;
+    mv_matrix = view * m_matrix;
+    mvp_matrix = projection * mv_matrix;
+    color_shader_.use();
+    color_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
+    color_shader_.set_uniform("tex", 0);
+    color_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
+    stars_.texture_.bind();
+    unit_sphere_mesh_.draw();
 
     for (Space_Object* planet : planets_)
     {
         m_matrix = planet->model_matrix_;
         mv_matrix = view * m_matrix;
         mvp_matrix = projection * mv_matrix;
+        n_matrix = transpose(inverse(mat3(mv_matrix)));
 
-        color_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
-        planet->texture_.bind();
-        unit_sphere_mesh_.draw();
+        if(planet->name_ == "earth") {
+            earth_shader_.use();
+            earth_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
+            earth_shader_.set_uniform("modelview_matrix", mv_matrix);
+            earth_shader_.set_uniform("normal_matrix", n_matrix);
+            earth_shader_.set_uniform("light_position", light);
+            earth_shader_.set_uniform("day_texture", 0);
+            earth_shader_.set_uniform("night_texture", 1);
+            earth_shader_.set_uniform("cloud_texture", 2);
+            earth_shader_.set_uniform("gloss_texture", 3);
+            earth_shader_.set_uniform("normal_texture", 4);
+            earth_shader_.set_uniform("greyscale", (int)greyscale_);
+
+                auto* earth = dynamic_cast<Earth*>(planet);
+                if (earth) {
+                    earth->texture_.bind();
+                    earth->night_.bind();
+                    earth->cloud_.bind();
+                    earth->gloss_.bind();
+                }
+                unit_sphere_mesh_.draw();
+        } else {
+            // color_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
+            phong_shader_.use();
+            phong_shader_.set_uniform("modelview_projection_matrix", mvp_matrix);
+            phong_shader_.set_uniform("modelview_matrix", mv_matrix);
+            phong_shader_.set_uniform("normal_matrix", n_matrix);
+            phong_shader_.set_uniform("light_position", light);
+            phong_shader_.set_uniform("tex", 0);
+            phong_shader_.set_uniform("greyscale", (int)greyscale_);
+
+            planet->texture_.bind();
+            unit_sphere_mesh_.draw();
+        }
     }
 
 
